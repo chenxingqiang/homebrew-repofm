@@ -8,8 +8,13 @@ class Repofm < Formula
     depends_on "node"
   
     def install
-      system "npm", "install", *Language::Node.std_npm_install_args(libexec)
-      bin.install_symlink Dir["#{libexec}/bin/*"]
+      system "npm", "install", "--prefix", libexec
+      system "npm", "run", "build", "--prefix", libexec
+      
+      (bin/"repofm").write <<~EOS
+        #!/bin/bash
+        exec "#{Formula["node"].opt_bin}/node" "#{libexec}/bin/repofm" "$@"
+      EOS
     end
   
     test do
