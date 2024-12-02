@@ -8,13 +8,23 @@ class Repofm < Formula
     depends_on "node"
   
     def install
-      system "npm", "install", "--prefix", libexec
-      system "npm", "run", "build", "--prefix", libexec
+      # 首先复制所有文件到 libexec
+      libexec.install Dir["*"]
       
+      # 在 libexec 目录中执行 npm install
+      cd libexec do
+        system "npm", "install"
+        system "npm", "run", "build"
+      end
+      
+      # 创建 bin 脚本
       (bin/"repofm").write <<~EOS
         #!/bin/bash
-        exec "#{Formula["node"].opt_bin}/node" "#{libexec}/bin/repofm" "$@"
+        exec "#{Formula["node"].opt_bin}/node" "#{libexec}/dist/cli/index.js" "$@"
       EOS
+      
+      # 设置执行权限
+      chmod 0755, bin/"repofm"
     end
   
     test do
